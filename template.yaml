@@ -5,9 +5,19 @@ Description: >
 
   Sample SAM Template for sam-stock-trader
 
+Globals:
+  Function:
+    Timeout: 3
+    Runtime: python3.9
+    Architectures:
+      - x86_64
+  Api:
+    OpenApiVersion: 3.0.3
+
 Resources:
   StockTradingStateMachine:
-    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Type: AWS::Serverless::StateMachine
+    # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
     Properties:
       DefinitionUri: statemachine/stock_trader.asl.json
       DefinitionSubstitutions:
@@ -18,7 +28,8 @@ Resources:
         DDBTable: !Ref TransactionTable
       Events:
         HourlyTradingSchedule:
-          Type: Schedule # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
+          Type: Schedule
+          # More info about Schedule Event Source: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-statemachine-schedule.html
           Properties:
             Description: Schedule to run the stock trading state machine every hour
             Enabled: False # This schedule is disabled by default to avoid incurring charges.
@@ -32,36 +43,74 @@ Resources:
             FunctionName: !Ref StockBuyerFunction
         - DynamoDBWritePolicy:
             TableName: !Ref TransactionTable
+        - Statement:
+           - Effect: Allow
+             Action:
+               - logs:CreateLogDelivery
+               - logs:GetLogDelivery
+               - logs:UpdateLogDelivery
+               - logs:DeleteLogDelivery
+               - logs:ListLogDeliveries
+               - logs:PutResourcePolicy
+               - logs:DescribeResourcePolicies
+               - logs:DescribeLogGroups
+             Resource: "*"
+      Logging:
+        Destinations:
+          - CloudWatchLogsLogGroup:
+              LogGroupArn: !GetAtt StockTradingStateMachineLogGroup.Arn
+        IncludeExecutionData: true
+        Level: ERROR
+
+  StockTradingStateMachineLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      RetentionInDays: 7
+      LogGroupName: !Sub
+        - "/aws/vendedlogs/states/${AWS::StackName}-StockTradingStateMachine-${v1}-Log"
+        - {v1: !Select [4, !Split ["-", !Select [2, !Split [/, !Ref AWS::StackId ]]]]}
 
   StockCheckerFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/stock_checker/
       Handler: app.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
 
   StockSellerFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/stock_seller/
       Handler: app.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
 
   StockBuyerFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: functions/stock_buyer/
       Handler: app.lambda_handler
-      Runtime: python3.9
-      Architectures:
-        - x86_64
+
+  StockCheckerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: StockCheckerFunction
+    Properties:
+      RetentionInDays: 7
+      LogGroupName: !Sub "/aws/lambda/${StockCheckerFunction}"
+
+  StockSellerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: StockSellerFunction
+    Properties:
+      RetentionInDays: 7
+      LogGroupName: !Sub "/aws/lambda/${StockSellerFunction}"
+
+  StockBuyerFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    DependsOn: StockBuyerFunction
+    Properties:
+      RetentionInDays: 7
+      LogGroupName: !Sub "/aws/lambda/${StockBuyerFunction}"
 
   TransactionTable:
-    Type: AWS::Serverless::SimpleTable # More info about SimpleTable Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html
+    Type: AWS::Serverless::SimpleTable
     Properties:
       PrimaryKey:
         Name: Id

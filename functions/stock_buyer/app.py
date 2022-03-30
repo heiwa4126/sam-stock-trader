@@ -7,7 +7,7 @@ def lambda_handler(event, context):
     """Sample Lambda function which mocks the operation of buying a random number
     of shares for a stock.
 
-    For demonstration purposes, this Lambda function does not actually perform any 
+    For demonstration purposes, this Lambda function does not actually perform any
     actual transactions. It simply returns a mocked result.
 
     Parameters

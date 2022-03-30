@@ -43,7 +43,8 @@ class TestStateMachine(TestCase):
             client.describe_stacks(StackName=stack_name)
         except Exception as e:
             raise Exception(
-                f"Cannot find stack {stack_name}. \n" f'Please make sure stack with the name "{stack_name}" exists.'
+                f"Cannot find stack {stack_name}. \n"
+                f'Please make sure stack with the name "{stack_name}" exists.'
             ) from e
 
         return stack_name
@@ -62,16 +63,22 @@ class TestStateMachine(TestCase):
         response = client.list_stack_resources(StackName=stack_name)
         resources = response["StackResourceSummaries"]
         state_machine_resources = [
-            resource for resource in resources if resource["LogicalResourceId"] == "StockTradingStateMachine"
+            resource
+            for resource in resources
+            if resource["LogicalResourceId"] == "StockTradingStateMachine"
         ]
         transaction_table_resources = [
-            resource for resource in resources if resource["LogicalResourceId"] == "TransactionTable"
+            resource
+            for resource in resources
+            if resource["LogicalResourceId"] == "TransactionTable"
         ]
         if not state_machine_resources or not transaction_table_resources:
             raise Exception("Cannot find StockTradingStateMachine or TransactionTable")
 
         cls.state_machine_arn = state_machine_resources[0]["PhysicalResourceId"]
-        cls.transaction_table_name = transaction_table_resources[0]["PhysicalResourceId"]
+        cls.transaction_table_name = transaction_table_resources[0][
+            "PhysicalResourceId"
+        ]
 
     def setUp(self) -> None:
         self.client = boto3.client("stepfunctions")
@@ -95,7 +102,9 @@ class TestStateMachine(TestCase):
         Start the state machine execution request and record the execution ARN
         """
         response = self.client.start_execution(
-            stateMachineArn=self.state_machine_arn, name=f"integ-test-{uuid4()}", input="{}"
+            stateMachineArn=self.state_machine_arn,
+            name=f"integ-test-{uuid4()}",
+            input="{}",
         )
         return response["executionArn"]
 
@@ -121,14 +130,19 @@ class TestStateMachine(TestCase):
         record_transaction_entered_events = [
             event
             for event in events
-            if event["type"] == "TaskStateEntered" and event["stateEnteredEventDetails"]["name"] == "Record Transaction"
+            if event["type"] == "TaskStateEntered"
+            and event["stateEnteredEventDetails"]["name"] == "Record Transaction"
         ]
         self.assertTrue(
             record_transaction_entered_events,
             "Cannot find Record Transaction TaskStateEntered event",
         )
-        transaction_table_input = json.loads(record_transaction_entered_events[0]["stateEnteredEventDetails"]["input"])
-        self.inserted_record_id = transaction_table_input["id"]  # save this ID for cleaning up
+        transaction_table_input = json.loads(
+            record_transaction_entered_events[0]["stateEnteredEventDetails"]["input"]
+        )
+        self.inserted_record_id = transaction_table_input[
+            "id"
+        ]  # save this ID for cleaning up
         return transaction_table_input
 
     def _verify_transaction_record_written(self, transaction_table_input: Dict):
