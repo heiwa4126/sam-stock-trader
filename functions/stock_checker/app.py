@@ -21,7 +21,9 @@ def lambda_handler(event, context):
         dict: Object containing the current price of the stock
     """
     # Check current price of the stock
+    # 現在の株価をチェックする
     stock_price = randint(
         0, 100
     )  # Current stock price is mocked as a random integer between 0 and 100
+    # いまのところはモックで、0から100までの乱数を値を返すだけ
     return {"stock_price": stock_price}

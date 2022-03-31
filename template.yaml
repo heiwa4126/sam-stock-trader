@@ -19,12 +19,16 @@ Resources:
     Type: AWS::Serverless::StateMachine
     # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
     Properties:
-      DefinitionUri: statemachine/stock_trader.asl.json
+      # DefinitionUri: statemachine/stock_trader.asl.json
+      DefinitionUri: statemachine/stock_trader.asl.yml
       DefinitionSubstitutions:
         StockCheckerFunctionArn: !GetAtt StockCheckerFunction.Arn
         StockSellerFunctionArn: !GetAtt StockSellerFunction.Arn
         StockBuyerFunctionArn: !GetAtt StockBuyerFunction.Arn
         DDBPutItem: !Sub arn:${AWS::Partition}:states:::dynamodb:putItem
+        # AWS::Partition疑似パラメータって初めて見た。
+        # https://docs.aws.amazon.com/ja_jp/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html#cfn-pseudo-param-partition
+        # 意外と重要かもしれない。"aws:"って書いてあるところ全部治す。
         DDBTable: !Ref TransactionTable
       Events:
         HourlyTradingSchedule:
@@ -60,7 +64,8 @@ Resources:
           - CloudWatchLogsLogGroup:
               LogGroupArn: !GetAtt StockTradingStateMachineLogGroup.Arn
         IncludeExecutionData: true
-        Level: ERROR
+        # Level: ERROR
+        Level: ALL
 
   StockTradingStateMachineLogGroup:
     Type: AWS::Logs::LogGroup

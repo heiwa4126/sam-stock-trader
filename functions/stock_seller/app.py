@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from random import randint
 from uuid import uuid4
 
@@ -23,8 +23,10 @@ def lambda_handler(event, context):
         dict: Object containing details of the stock selling transaction
     """
     # Get the price of the stock provided as input
+    # 入力から株価を得る
     stock_price = event["stock_price"]
     # Mocked result of a stock selling transaction
+    # 「株を売る処理」を返す(ただし今のところモック)
     transaction_result = {
         "id": str(uuid4()),  # Unique ID for the transaction
         "price": str(stock_price),  # Price of each share
@@ -32,6 +34,9 @@ def lambda_handler(event, context):
         "qty": str(
             randint(1, 10)
         ),  # Number of shares bought/sold (We are mocking this as a random integer between 1 and 10)
-        "timestamp": datetime.now().isoformat(),  # Timestamp of the when the transaction was completed
+        # 売る株式の数(1から10の乱数)
+        "timestamp": datetime.now(
+            timezone.utc
+        ).isoformat(),  # Timestamp of the when the transaction was completed
     }
     return transaction_result
