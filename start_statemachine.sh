@@ -9,7 +9,9 @@
 . ./.export.sh
 NAME1=$(date +%Y-%m-%d-%H-%M-%S.%N)
 
-aws stepfunctions start-execution \
-  --state-machine-arn "$StockTradingStateMachineArn" \
-  --name "$NAME1" \
-  --input '{"dummy":"dummy"}'
+echo "NAME1=${NAME1}" > tmpname1.sh
+
+# aws stepfunctions start-execution \
+#   --state-machine-arn "$StockTradingStateMachineArn" \
+#   --name "$NAME1" \
+#   --input '{"dummy":"dummy"}'

@@ -32,7 +32,35 @@ functions/stock_seller/app.py
 で、
 Record Transaction で
 DynamoDBに入れる。
-すごいのはこれASLでできること。
+すごいのはここASLでできること。
+
+
+# ステートマシンのデプロイ
+
+SAMなので
+
+```sh
+sam build
+sam deploy --guided # --guidedは2回め以降は不要
+```
+
+# ステートマシンの実行
+
+コマンドラインから実行するサンプル `start_statemachine.sh`。
+
+デプロイ成功後、準備として
+```sh
+pip3 install -U -r requirements.txt
+./export1.py
+```
+を1回実行。
+
+その後
+```sh
+./start_statemachine.sh
+```
+でステートマシンが実行される。
+
 
 
 # 最適化統合(optimized integrations)
