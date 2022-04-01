@@ -24,7 +24,7 @@ def main():
 
     # shellscriptで処理できるような出力
     s = f"""
-StockTradingStateMachineArn={data["o"]["StockTradingStateMachineArn"]}
+StateMachineArn={data["o"]["StockTradingStateMachineArn"]}
 """
     with open(".export.sh", "w") as f:
         f.write(s)
